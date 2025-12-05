@@ -20,6 +20,34 @@
 </head>
 
 <body>
+  <nav class="navbar navbar-light bg-light mb-4">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="#">
+        <img src="{% static 'logo.png' %}" width="50" height="50" class="d-inline-block align-top mr-2" alt="Logo">
+        <span class="h3 mb-0">Georgia Auction Alert Archive</span>
+      </a>
+      {% if request.user.is_authenticated %}
+      <span class="navbar-text mr-3">
+        Welcome, {{ request.user.username }}
+      </span>
+      {% endif %}
+
+      {% if subscription.status != "active" %}
+      <div class="form-inline">
+        <span class="navbar-text mr-2">Subscribe to access future auctions!</span>
+        {% if request.user.is_authenticated %}
+        <button type="submit" class="btn btn-primary btn-sm" id="submitBtn">
+          Subscribe
+        </button>
+        {% else %}
+        <a href="{% url 'account_signup' %}" class="btn btn-primary btn-sm">
+          Subscribe
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </nav>
   <div class="container mt-5">
     <div class="row">
       <div class="col-md-6">
@@ -34,22 +62,11 @@
             <a href="{% url 'cancel' %}" class="btn btn-danger mt-3">Cancel Subscription</a>
           </div>
         </div>
-        {% else %}
-        <h4>Subscribe to access all files</h4>
-        {% if request.user.is_authenticated %}
-        <button type="submit" class="btn btn-primary" id="submitBtn">
-          Subscribe
-        </button>
-        {% else %}
-        <a href="{% url 'account_signup' %}" class="btn btn-primary">
-          Subscribe
-        </a>
-        {% endif %}
         {% endif %}
       </div>
 
       <div class="col-md-6">
-        <h4>Available Files</h4>
+        <h4>Auction Listings</h4>
         {% if not user_is_active %}
         <div class="alert alert-info">
           You are viewing limited files. <br>
