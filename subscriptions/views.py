@@ -11,29 +11,37 @@ from django.contrib.auth.models import User
 from django.http.response import JsonResponse, HttpResponse
 from subscriptions.models import StripeCustomer
 
-@login_required
+from subscriptions.utils import list_files
+
 def home(request):
-    try:
-        # Retrieve the subscription & product
-        stripe_customer = StripeCustomer.objects.get(user=request.user)
-        stripe.api_key = settings.STRIPE_SECRET_KEY
-        subscription = stripe.Subscription.retrieve(stripe_customer.stripeSubscriptionId)
-        product = stripe.Product.retrieve(subscription.plan.product)
-
-        # current_period_end = stripe.Subscription.retrieve(stripe_customer.stripeSubscriptionId)
-
-        # Feel free to fetch any additional data from "subscription" or "product"
-        # https://stripe.com/docs/api/subscriptions/object
-        # https://stripe.com/docs/api/products/object
-
-
-        return render(request, "home.html", {
-            "subscription": subscription,
-            "product": product,
+    user_is_active = False
+    subscription = None
+    product = None
     
-        })
-    except StripeCustomer.DoesNotExist:
-        return render(request, "home.html")
+    if request.user.is_authenticated:
+        try:
+            stripe_customer = StripeCustomer.objects.get(user=request.user)
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+            subscription = stripe.Subscription.retrieve(stripe_customer.stripeSubscriptionId)
+            product = stripe.Product.retrieve(subscription.plan.product)
+            
+            # Check if subscription is active
+            if subscription.status == 'active':
+                user_is_active = True
+                
+        except StripeCustomer.DoesNotExist:
+            pass
+        except Exception as e:
+            print(f"Error fetching subscription: {e}")
+
+    files = list_files(user_is_active=user_is_active)
+
+    return render(request, "home.html", {
+        "subscription": subscription,
+        "product": product,
+        "files": files,
+        "user_is_active": user_is_active
+    })
 
 @csrf_exempt
 def stripe_config(request):
