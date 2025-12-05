@@ -34,7 +34,7 @@
 
       {% if subscription.status != "active" %}
       <div class="form-inline">
-        <span class="navbar-text mr-2">Subscribe to access future auctions!</span>
+        <span class="navbar-text mr-2">Subscribe for alerts and access to future auctions!</span>
         {% if request.user.is_authenticated %}
         <button type="submit" class="btn btn-primary btn-sm" id="submitBtn">
           Subscribe
@@ -56,9 +56,9 @@
         <div class="alert alert-info">
           You are viewing limited files. <br>
           {% if request.user.is_authenticated %}
-          Subscribe to see future files.
+          Subscribe to see upcoming auctions.
           {% else %}
-          <a href="/accounts/login/">Login</a> and subscribe to see future files.
+          <a href="/accounts/login/">Login</a> and subscribe to recieve alerts and see upcoming auctions.
           {% endif %}
         </div>
         {% endif %}
@@ -84,6 +84,12 @@
       </div>
 
       <div class="col-md-6">
+        <div style="color: red; font-weight: bold; margin-bottom: 20px;">
+          No verifiable chain of custody for this data allows this entity to make zero claims to its authenticity. Users
+          of this data agree that it is their responsibility to perform their own due diligence before attending a tax
+          sale. Please consult an
+          attorney before investing in tax sales to determine if this level of risk is right for you.
+        </div>
         {% if subscription.status == "active" %}
         <h4>Your subscription:</h4>
         <div class="card" style="width: 18rem;">
