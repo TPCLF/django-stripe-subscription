@@ -59,17 +59,20 @@ def list_files(user_is_active=False):
                 is_future = file_date > today
                 
                 if user_is_active or not is_future:
+                    # Generate a signed URL valid for 1 hour.
+                    signed_url_response = supabase.storage.from_(bucket_name).create_signed_url(filename, 3600)
+                    
+                    # Handle response being a dict (real client) or string (mock/older versions)
+                    if isinstance(signed_url_response, dict):
+                        file_url = signed_url_response.get('signedURL') or signed_url_response.get('signedUrl')
+                    else:
+                        file_url = signed_url_response
+
                     files.append({
                         'name': filename,
                         'date': file_date,
                         'is_future': is_future,
-                        # Generate a signed URL for download/viewing if needed, or just public URL
-                        # For now, let's just assume we list them. 
-                        # If we need to download, we might need to generate a signed URL.
-                        # Let's add a public url for now if the bucket is public, or signed if private.
-                        # Assuming public for simplicity unless specified otherwise, but signed is safer.
-                        # Let's generate a signed URL valid for 1 hour.
-                        'url': supabase.storage.from_(bucket_name).create_signed_url(filename, 3600)
+                        'url': file_url
                     })
         
         # Sort by date descending (newest first)

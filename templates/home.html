@@ -51,21 +51,6 @@
   <div class="container mt-5">
     <div class="row">
       <div class="col-md-6">
-        {% if subscription.status == "active" %}
-        <h4>Your subscription:</h4>
-        <div class="card" style="width: 18rem;">
-          <div class="card-body">
-            <h5 class="card-title">{{ product.name }}</h5>
-            <p class="card-text">{{ product.description }}</p>
-            <p class="card-text">Subscription started from {{ subscription.current_period_start | print_timestamp }}</p>
-            <p class="card-text">Subscription ends on {{ subscription.current_period_end | print_timestamp }}</p>
-            <a href="{% url 'cancel' %}" class="btn btn-danger mt-3">Cancel Subscription</a>
-          </div>
-        </div>
-        {% endif %}
-      </div>
-
-      <div class="col-md-6">
         <h4>Auction Listings</h4>
         {% if not user_is_active %}
         <div class="alert alert-info">
@@ -81,7 +66,7 @@
         <div class="list-group" style="max-height: 500px; overflow-y: auto;">
           {% for file in files %}
           <a href="{{ file.url }}" class="list-group-item list-group-item-action flex-column align-items-start"
-            target="_blank">
+            target="_blank" download>
             <div class="d-flex w-100 justify-content-between">
               <h5 class="mb-1">{{ file.name }}</h5>
               <small>{{ file.date }}</small>
@@ -96,6 +81,21 @@
           <div class="list-group-item">No files found.</div>
           {% endfor %}
         </div>
+      </div>
+
+      <div class="col-md-6">
+        {% if subscription.status == "active" %}
+        <h4>Your subscription:</h4>
+        <div class="card" style="width: 18rem;">
+          <div class="card-body">
+            <h5 class="card-title">{{ product.name }}</h5>
+            <p class="card-text">{{ product.description }}</p>
+            <p class="card-text">Subscription started from {{ subscription.current_period_start | print_timestamp }}</p>
+            <p class="card-text">Subscription ends on {{ subscription.current_period_end | print_timestamp }}</p>
+            <a href="{% url 'cancel' %}" class="btn btn-danger mt-3">Cancel Subscription</a>
+          </div>
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>

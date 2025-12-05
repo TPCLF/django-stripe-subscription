@@ -47,10 +47,10 @@ pip install -r requirements.txt
 Create a new file called `user_settings.py` in `djangostripe/`. add the following
 
 ```python
-STRIPE_PUBLISHABLE_KEY="pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-STRIPE_SECRET_KEY="sk_test_yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
-STRIPE_PRICE_ID="price_tttttttttttttttttttttttttttttttttttttt"
-STRIPE_ENDPOINT_SECRET = "whsec_hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh"
+STRIPE_PUBLISHABLE_KEY=
+STRIPE_SECRET_KEY=
+STRIPE_PRICE_ID=
+STRIPE_ENDPOINT_SECRET =
 ```
 
 To fill up the valuees, signup at Stripe and obtain those keys. Refer to [this-section](#add-stripe) and [this-section](#create-a-product).

@@ -35,6 +35,13 @@ try:
         print("Files found:")
         for f in res:
             print(f" - {f.get('name')}")
+            
+        # Generate signed URL for the first file
+        first_file = res[0].get('name')
+        print(f"\nGenerating signed URL for '{first_file}'...")
+        signed_url = supabase.storage.from_(bucket).create_signed_url(first_file, 3600)
+        print(f"Signed URL result: {signed_url}")
+        print(f"Type: {type(signed_url)}")
 
 except Exception as e:
     print(f"Error: {e}")
