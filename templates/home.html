@@ -29,21 +29,16 @@
       {% if request.user.is_authenticated %}
       <span class="navbar-text mr-3">
         Welcome, {{ request.user.username }}
+        <a href="{% url 'account_logout' %}" class="btn btn-outline-secondary btn-sm ml-2">Logout</a>
       </span>
       {% endif %}
 
-      {% if subscription.status != "active" %}
+      {% if not request.user.is_authenticated %}
       <div class="form-inline">
         <span class="navbar-text mr-2">Subscribe for alerts and access to future auctions!</span>
-        {% if request.user.is_authenticated %}
-        <button type="submit" class="btn btn-primary btn-sm" id="submitBtn">
-          Subscribe
-        </button>
-        {% else %}
         <a href="{% url 'account_signup' %}" class="btn btn-primary btn-sm">
           Subscribe
         </a>
-        {% endif %}
       </div>
       {% endif %}
     </div>
@@ -54,7 +49,7 @@
         <h4>Auction Listings</h4>
         {% if not can_see_all_files %}
         <div class="alert alert-info">
-          You are viewing limited files. <br>
+          You are viewing listings from auctions past.<br>
           {% if request.user.is_authenticated %}
           Subscribe to see upcoming auctions.
           {% else %}
