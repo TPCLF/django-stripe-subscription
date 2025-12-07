@@ -52,7 +52,7 @@
     <div class="row">
       <div class="col-md-6">
         <h4>Auction Listings</h4>
-        {% if not user_is_active %}
+        {% if not can_see_all_files %}
         <div class="alert alert-info">
           You are viewing limited files. <br>
           {% if request.user.is_authenticated %}
@@ -84,9 +84,12 @@
       </div>
 
       <div class="col-md-6">
-        <div style="color: red; font-weight: bold; margin-bottom: 20px;">
-          No verifiable chain of custody for this data allows this entity to make zero claims to its authenticity. Users
-          of this data agree that it is their responsibility to perform their own due diligence before attending a tax
+        <div style="color: rgb(80, 80, 80); font-weight: bold; margin-bottom: 20px;">
+          Disclamer: Lengthy chain of custody for this data allows this entity to make zero claims to its
+          authenticity. Users
+          of data obtained from this site agree that it is their responsibility to perform their own due diligence
+          before
+          attending a tax
           sale. Please consult an
           attorney before investing in tax sales to determine if this level of risk is right for you.
         </div>

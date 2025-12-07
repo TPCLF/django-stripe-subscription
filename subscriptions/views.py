@@ -34,13 +34,16 @@ def home(request):
         except Exception as e:
             print(f"Error fetching subscription: {e}")
 
-    files = list_files(user_is_active=user_is_active)
+    # Allow any logged-in user to see all files
+    can_see_all_files = request.user.is_authenticated
+    files = list_files(user_is_active=can_see_all_files)
 
     return render(request, "home.html", {
         "subscription": subscription,
         "product": product,
         "files": files,
-        "user_is_active": user_is_active
+        "user_is_active": user_is_active,
+        "can_see_all_files": can_see_all_files
     })
 
 @csrf_exempt
