@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.conf import settings
 from supabase import create_client, Client
 
@@ -56,7 +56,8 @@ def list_files(user_is_active=False):
                 pass
             
             if file_date:
-                is_future = file_date > today
+                # Add 1-day offset: files become visible to anonymous users 1 day after their date
+                is_future = file_date > (today - timedelta(days=1))
                 
                 if user_is_active or not is_future:
                     # Generate a signed URL valid for 1 hour.
