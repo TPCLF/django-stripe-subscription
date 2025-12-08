@@ -161,3 +161,18 @@ STATICFILES_DIRS = [Path(BASE_DIR).joinpath("static")]
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
 SUPABASE_BUCKET = os.environ.get("SUPABASE_BUCKET", "files")
+
+# CSRF Settings for development
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8001',
+    'http://127.0.0.1:8001',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
+
+# Session settings to help with logout/login issues
+CSRF_USE_SESSIONS = False
+CSRF_COOKIE_HTTPONLY = False
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_AGE = None  # Cookie expires when browser closes, helps with stale tokens

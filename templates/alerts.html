@@ -46,8 +46,6 @@
         <h2>Manage Alerts</h2>
         <p>Select the counties you want to receive email alerts for when new files are uploaded.</p>
 
-        <div id="alert-message" class="alert alert-success" style="display: none;"></div>
-
         <form id="alerts-form">
             {% csrf_token %}
             <div class="row">
@@ -64,7 +62,8 @@
                 </div>
                 {% endfor %}
             </div>
-            <div class="mt-4 mb-5">
+            <div id="alert-message" class="alert alert-success mt-4" style="display: none;"></div>
+            <div class="mb-3">
                 <button type="submit" class="btn btn-primary btn-lg">Save Alerts</button>
             </div>
         </form>
