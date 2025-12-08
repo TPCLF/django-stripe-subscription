@@ -29,6 +29,7 @@
       {% if request.user.is_authenticated %}
       <span class="navbar-text mr-3">
         Welcome, {{ request.user.username }}
+        <button type="button" class="btn btn-info btn-sm ml-2">Alerts</button>
         <a href="{% url 'account_logout' %}" class="btn btn-outline-secondary btn-sm ml-2">Logout</a>
       </span>
       {% endif %}
@@ -88,6 +89,15 @@
           sale. Please consult an
           attorney before investing in tax sales to determine if this level of risk is right for you.
         </div>
+
+        <div class="mb-4">
+          {% if request.user.is_authenticated %}
+          <img src="{% static '2.png' %}" alt="Logged in image" class="img-fluid">
+          {% else %}
+          <img src="{% static '1.png' %}" alt="Guest image" class="img-fluid">
+          {% endif %}
+        </div>
+
         {% if subscription.status == "active" %}
         <h4>Your subscription:</h4>
         <div class="card" style="width: 18rem;">
