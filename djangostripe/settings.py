@@ -150,8 +150,22 @@ SITE_ID = 1
 # User will be redirected to this page after logging in
 LOGIN_REDIRECT_URL= "/"
 
-# If you don't have an email server running yet add this line to avoid any possible errors
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# Email Configuration
+# For production: configure SMTP credentials in .env file
+# For development/testing: leave EMAIL_HOST empty to use console backend
+EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
+if EMAIL_HOST:
+    # SMTP Email Backend - sends real emails
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+    EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
+    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+else:
+    # Console Backend - prints emails to terminal (development only)
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+    DEFAULT_FROM_EMAIL = "noreply@example.com"
 
 STATIC_URL = "/static/"
 
