@@ -29,7 +29,7 @@
       {% if request.user.is_authenticated %}
       <span class="navbar-text mr-3">
         Welcome, {{ request.user.username }}
-        <button type="button" class="btn btn-info btn-sm ml-2">Alerts</button>
+        <a href="{% url 'alerts' %}" class="btn btn-info btn-sm ml-2">Alerts</a>
         <a href="{% url 'account_logout' %}" class="btn btn-outline-secondary btn-sm ml-2">Logout</a>
       </span>
       {% endif %}
