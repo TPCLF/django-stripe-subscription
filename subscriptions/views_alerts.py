@@ -31,7 +31,11 @@ GA_COUNTIES = [
 @login_required
 def alerts_view(request):
     try:
-        customer = StripeCustomer.objects.get(user=request.user)
+        # Get or create StripeCustomer for this user
+        customer, created = StripeCustomer.objects.get_or_create(
+            user=request.user,
+            defaults={'stripeCustomerId': '', 'stripeSubscriptionId': ''}
+        )
         user_uuid = str(customer.supabase_user_uuid)
         
         # Fetch existing alerts from Supabase
@@ -40,9 +44,6 @@ def alerts_view(request):
         
         user_keywords = [item['keyword'] for item in response.data]
         
-    except StripeCustomer.DoesNotExist:
-        # Should not happen for subscribed users, but handle gracefully
-        user_keywords = []
     except Exception as e:
         print(f"Error fetching alerts: {e}")
         user_keywords = []
@@ -56,7 +57,11 @@ def alerts_view(request):
 def update_alerts(request):
     if request.method == 'POST':
         try:
-            customer = StripeCustomer.objects.get(user=request.user)
+            # Get or create StripeCustomer for this user
+            customer, created = StripeCustomer.objects.get_or_create(
+                user=request.user,
+                defaults={'stripeCustomerId': '', 'stripeSubscriptionId': ''}
+            )
             user_uuid = str(customer.supabase_user_uuid)
             selected_keywords = request.POST.getlist('keywords')
             
