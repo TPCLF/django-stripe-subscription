@@ -54,10 +54,11 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    # Ensure CSRF cookie is present for GET requests to avoid 'CSRF cookie not set' errors
+    'subscriptions.middleware.EnsureCSRFCookieMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'djangostripe.urls'
@@ -174,6 +175,8 @@ STATICFILES_DIRS = [Path(BASE_DIR).joinpath("static")]
 # Supabase Settings
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
+# Optional: service role key for server-side operations (keep this secret)
+SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
 SUPABASE_BUCKET = os.environ.get("SUPABASE_BUCKET", "files")
 
 # CSRF Settings for development

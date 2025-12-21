@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 from .models import StripeCustomer
 from .utils import get_supabase_client
+import os
 import json
 
 # List of Georgia Counties
@@ -103,13 +104,21 @@ def storage_webhook(request):
             # Check for matching keywords in alerts table
             supabase = get_supabase_client()
             
+            # Use the Supabase service role key for server-side reads if available (bypasses RLS)
+            from supabase import create_client as create_supabase_client
+            service_key = getattr(settings, 'SUPABASE_SERVICE_KEY', '') or os.environ.get('SUPABASE_SERVICE_KEY', '')
+            if service_key:
+                supabase_service = create_supabase_client(settings.SUPABASE_URL, service_key)
+            else:
+                supabase_service = supabase
+
             # We need to find all alerts where the keyword is contained in the filename.
             # Supabase doesn't have a simple "reverse like" query easily accessible via client for this specific case
             # efficiently without a stored procedure, but we can fetch all unique keywords or 
             # iterate through keywords. 
             # BETTER APPROACH: Fetch all alerts, filter in Python (if dataset is small) 
             # OR use Supabase text search if configured.
-            # Given the constraints, let's fetch all alerts and filter. 
+            # Given the constraints, let's fetch alerts matching the counties.
             # Optimization: If we have many users, this is bad. 
             # Alternative: Extract potential keywords from filename (e.g. split by _) and query for those.
             
@@ -118,25 +127,27 @@ def storage_webhook(request):
             
             if matched_counties:
                 print(f"Matched counties: {matched_counties}")
-                # Find users subscribed to these counties
-                response = supabase.table('alerts').select('user_id').in_('keyword', matched_counties).execute()
-                user_uuids = set(item['user_id'] for item in response.data)
+                # Find users subscribed to these counties using the service client (no RLS)
+                response = supabase_service.table('alerts').select('user_id').in_('keyword', matched_counties).execute()
+                user_uuids = set(item['user_id'] for item in response.data) if response.data else set()
                 
                 for uuid_str in user_uuids:
-                    try:
-                        customer = StripeCustomer.objects.get(supabase_user_uuid=uuid_str)
+                    customers = StripeCustomer.objects.filter(supabase_user_uuid=uuid_str)
+                    if not customers.exists():
+                        print(f"No StripeCustomer found for UUID {uuid_str}")
+                        continue
+
+                    for customer in customers:
                         user_email = customer.user.email
-                        
                         print(f"Sending alert to {user_email}")
-                        send_mail(
+                        result = send_mail(
                             subject=f"New Auction Alert: {filename}",
                             message=f"A new file matching your alerts has been uploaded: {filename}.\n\nLog in to view: http://localhost:8000/",
                             from_email=settings.DEFAULT_FROM_EMAIL,
                             recipient_list=[user_email],
                             fail_silently=True,
                         )
-                    except StripeCustomer.DoesNotExist:
-                        print(f"No StripeCustomer found for UUID {uuid_str}")
+                        print(f"send_mail result: {result}")
                         
             return HttpResponse(status=200)
             

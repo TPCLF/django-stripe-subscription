@@ -20,6 +20,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("", include("subscriptions.urls")), # new
     path("accounts/", include("allauth.urls")),
-
+    # Enable Django's built-in auth views (password reset, confirm, etc.)
+    path("auth/", include("django.contrib.auth.urls")),
 
 ]
