@@ -50,7 +50,7 @@
         {% if messages %}
         <div>
             {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
+            <div class="alert alert-{{ message.tags }} auto-dismiss">
                 {{ message }}
             </div>
             {% endfor %}
@@ -58,6 +58,14 @@
         {% endif %}
         {% block content %}{% endblock %}
     </div>
+    <script>
+        // Auto-dismiss Django messages after 2 seconds
+        $(document).ready(function () {
+            setTimeout(function () {
+                $('.alert.auto-dismiss').fadeOut('slow');
+            }, 2000);
+        });
+    </script>
 </body>
 
 </html>

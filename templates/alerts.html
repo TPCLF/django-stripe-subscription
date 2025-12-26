@@ -1,5 +1,4 @@
 {% load static %}
-<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -81,7 +80,7 @@
                     url: '{% url "update_alerts" %}',
                     data: formData,
                     success: function (response) {
-                        $('#alert-message').text('Alerts saved successfully!').fadeIn().delay(3000).fadeOut();
+                        $('#alert-message').text('Alerts saved successfully!').fadeIn().delay(2000).fadeOut();
                     },
                     error: function (xhr, status, error) {
                         $('#alert-message').removeClass('alert-success').addClass('alert-danger')
