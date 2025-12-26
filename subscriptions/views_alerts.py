@@ -66,16 +66,29 @@ def update_alerts(request):
             user_uuid = str(customer.supabase_user_uuid)
             selected_keywords = request.POST.getlist('keywords')
             
-            supabase = get_supabase_client()
-            
+            # Use service role key for server-side writes (bypass RLS) when available
+            service_key = getattr(settings, 'SUPABASE_SERVICE_KEY', '') or os.environ.get('SUPABASE_SERVICE_KEY', '')
+            if service_key:
+                from supabase import create_client as create_supabase_client
+                supabase_service = create_supabase_client(settings.SUPABASE_URL, service_key)
+            else:
+                # Fall back to the regular client (may be blocked by RLS)
+                supabase_service = get_supabase_client()
+
             # 1. Delete existing alerts for this user
-            supabase.table('alerts').delete().eq('user_id', user_uuid).execute()
-            
+            del_res = supabase_service.table('alerts').delete().eq('user_id', user_uuid).execute()
             # 2. Insert new alerts
             if selected_keywords:
                 data = [{'user_id': user_uuid, 'keyword': k} for k in selected_keywords]
-                supabase.table('alerts').insert(data).execute()
-                
+                ins_res = supabase_service.table('alerts').insert(data).execute()
+                # If insert failed due to RLS or other DB error, surface a clear message
+                if getattr(ins_res, 'status_code', None) and ins_res.status_code >= 400:
+                    print(f"Supabase insert failed: {ins_res}")
+                    return JsonResponse({'status': 'error', 'message': str(ins_res)}, status=500)
+                if isinstance(ins_res, dict) and ins_res.get('error'):
+                    print(f"Supabase insert error: {ins_res}")
+                    return JsonResponse({'status': 'error', 'message': ins_res.get('error')}, status=500)
+
             return JsonResponse({'status': 'success'})
             
         except Exception as e:

@@ -48,6 +48,10 @@
 
         <form id="alerts-form">
             {% csrf_token %}
+            <div id="alert-message" class="alert alert-success mb-3" style="display: none;"></div>
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary btn-lg">Save Alerts</button>
+            </div>
             <div class="row">
                 {% for county in counties %}
                 <div class="col-md-3 mb-2">
@@ -61,10 +65,6 @@
                     </div>
                 </div>
                 {% endfor %}
-            </div>
-            <div id="alert-message" class="alert alert-success mt-4" style="display: none;"></div>
-            <div class="mb-3">
-                <button type="submit" class="btn btn-primary btn-lg">Save Alerts</button>
             </div>
         </form>
     </div>
