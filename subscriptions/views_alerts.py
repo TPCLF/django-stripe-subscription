@@ -39,14 +39,34 @@ def alerts_view(request):
         )
         user_uuid = str(customer.supabase_user_uuid)
         
+        print(f"[ALERTS DEBUG] User: {request.user.username}")
+        print(f"[ALERTS DEBUG] Customer UUID: {user_uuid}")
+        print(f"[ALERTS DEBUG] Customer created: {created}")
+        
+        # Use service role key for server-side reads (bypass RLS) when available
+        service_key = getattr(settings, 'SUPABASE_SERVICE_KEY', '') or os.environ.get('SUPABASE_SERVICE_KEY', '')
+        if service_key:
+            from supabase import create_client as create_supabase_client
+            supabase = create_supabase_client(settings.SUPABASE_URL, service_key)
+            print("[ALERTS DEBUG] Using service role key for read")
+        else:
+            # Fall back to the regular client (may be blocked by RLS)
+            supabase = get_supabase_client()
+            print("[ALERTS DEBUG] Using regular client (may be blocked by RLS)")
+        
         # Fetch existing alerts from Supabase
-        supabase = get_supabase_client()
         response = supabase.table('alerts').select('keyword').eq('user_id', user_uuid).execute()
+        
+        print(f"[ALERTS DEBUG] Supabase response data: {response.data}")
         
         user_keywords = [item['keyword'] for item in response.data]
         
+        print(f"[ALERTS DEBUG] User keywords: {user_keywords}")
+        
     except Exception as e:
-        print(f"Error fetching alerts: {e}")
+        print(f"[ALERTS ERROR] Error fetching alerts: {e}")
+        import traceback
+        traceback.print_exc()
         user_keywords = []
 
     return render(request, 'alerts.html', {
