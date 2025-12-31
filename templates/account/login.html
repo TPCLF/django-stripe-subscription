@@ -2,18 +2,27 @@
 
 {% load i18n %}
 {% load account socialaccount %}
+{% load static %}
 
 {% block head_title %}{% trans "Sign In" %}{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-6">
+        <div class="text-center mb-4">
+            <img src="{% static 'login.png' %}" alt="{% trans 'Login' %}" class="img-fluid" style="max-height: 200px;">
+        </div>
         <h1>{% trans "Sign In" %}</h1>
 
         {% get_providers as socialaccount_providers %}
 
         {% if socialaccount_providers %}
-        <p>{% blocktrans with site.name as site_name %}Please sign in with one of your existing third party accounts. Or, <a href="{{ signup_url }}">sign up</a> for a {{ site_name }} account and sign in below:{% endblocktrans %}</p>
+        <p>
+            {% blocktrans with site.name as site_name %}
+            Please sign in with one of your existing third party accounts. Or, <a href="{{ signup_url }}">sign up</a>
+            for a {{ site_name }} account and sign in below:
+            {% endblocktrans %}
+        </p>
 
         <div class="socialaccount_ballot">
 
@@ -28,8 +37,12 @@
         {% include "socialaccount/snippets/login_extra.html" %}
 
         {% else %}
-        <p>{% blocktrans %}If you have not created an account yet, then please
-        <a href="{{ signup_url }}">sign up</a> first.{% endblocktrans %}</p>
+        <p>
+            {% blocktrans %}
+            If you have not created an account yet, then please
+            <a href="{{ signup_url }}">sign up</a> first.
+            {% endblocktrans %}
+        </p>
         {% endif %}
 
         <form class="login" method="POST" action="{% url 'account_login' %}">
@@ -39,7 +52,9 @@
             <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
             {% endif %}
             <button class="primaryAction btn btn-primary" type="submit">{% trans "Sign In" %}</button>
-            <a class="button secondaryAction btn btn-link" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
+            <a class="button secondaryAction btn btn-link" href="{% url 'account_reset_password' %}">
+                {% trans "Forgot Password?" %}
+            </a>
         </form>
     </div>
 </div>

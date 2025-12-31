@@ -1,12 +1,17 @@
 {% extends "base.html" %}
 
 {% load i18n %}
+{% load static %}
 
 {% block head_title %}{% trans "Sign Out" %}{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-6">
+        <div class="text-center mb-4">
+            <img src="{% static 'logout.png' %}" alt="{% trans 'Logout' %}" class="img-fluid"
+                style="max-height: 200px;">
+        </div>
         <h1>{% trans "Sign Out" %}</h1>
 
         <p>{% trans 'Are you sure you want to sign out?' %}</p>
