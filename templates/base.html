@@ -26,11 +26,13 @@
                 <span class="h3 mb-0">Georgia Auction Alert Archive</span>
             </a>
             {% if request.user.is_authenticated %}
+            {% block nav_user_actions %}
             <span class="navbar-text mr-3">
                 Welcome, {{ request.user.username }}
                 <a href="{% url 'alerts' %}" class="btn btn-info btn-sm ml-2">Alerts</a>
                 <a href="{% url 'account_logout' %}" class="btn btn-outline-secondary btn-sm ml-2">Logout</a>
             </span>
+            {% endblock %}
             {% endif %}
 
             {% if not request.user.is_authenticated %}

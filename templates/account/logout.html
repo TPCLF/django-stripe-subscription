@@ -5,6 +5,12 @@
 
 {% block head_title %}{% trans "Sign Out" %}{% endblock %}
 
+{% block nav_user_actions %}
+<div class="form-inline">
+    <a href="{% url 'subscriptions-home' %}" class="btn btn-outline-primary btn-sm ml-2">Home</a>
+</div>
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-md-6">
