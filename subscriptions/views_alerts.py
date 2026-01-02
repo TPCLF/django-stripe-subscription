@@ -158,29 +158,61 @@ def storage_webhook(request):
             # Heuristic: Check if any GA_COUNTY is in the filename
             matched_counties = [county for county in GA_COUNTIES if county.lower() in filename.lower()]
             
+            # Extract date from filename if possible (e.g. County_Date_Title.csv)
+            import re
+            date_match = re.search(r'(\d{1,2}-\d{1,2}-\d{4})', filename)
+            auction_date = date_match.group(1) if date_match else "Upcoming Tuesday"
+
             if matched_counties:
                 print(f"Matched counties: {matched_counties}")
                 # Find users subscribed to these counties using the service client (no RLS)
-                response = supabase_service.table('alerts').select('user_id').in_('keyword', matched_counties).execute()
-                user_uuids = set(item['user_id'] for item in response.data) if response.data else set()
+                response = supabase_service.table('alerts').select('user_id, keyword').in_('keyword', matched_counties).execute()
                 
-                for uuid_str in user_uuids:
+                # Group by user_id to avoid duplicate emails if multiple keywords match (though filename likely matches one)
+                user_matches = {} # {uuid: [keywords]}
+                if response.data:
+                    for item in response.data:
+                        uid = item['user_id']
+                        if uid not in user_matches:
+                            user_matches[uid] = []
+                        user_matches[uid].append(item['keyword'])
+                
+                for uuid_str, keywords in user_matches.items():
                     customers = StripeCustomer.objects.filter(supabase_user_uuid=uuid_str)
                     if not customers.exists():
                         print(f"No StripeCustomer found for UUID {uuid_str}")
                         continue
 
+                    county_name = keywords[0] # Just take the first matched keyword for the email
+
                     for customer in customers:
                         user_email = customer.user.email
+                        user_name = customer.user.username # Or first_name if available
                         print(f"Sending alert to {user_email}")
-                        result = send_mail(
-                            subject=f"New Auction Alert: {filename}",
-                            message=f"A new file matching your alerts has been uploaded: {filename}.\n\nLog in to view: http://localhost:8000/",
-                            from_email=settings.DEFAULT_FROM_EMAIL,
-                            recipient_list=[user_email],
-                            fail_silently=True,
-                        )
-                        print(f"send_mail result: {result}")
+                        
+                        subject = "Exciting news! An auction is about to happen in an area you've expressed interest in!"
+                        body = f"""Dear {user_name},
+
+An auction is happening soon in your selected area!
+
+The auction is scheduled for Tuesday, {auction_date}, at 10am in {county_name} County.
+
+Remember to keep an eye on your email and our website for more updates.
+
+We wish you the best of luck at the auction!
+GAAA Admin Team
+"""
+                        try:
+                            result = send_mail(
+                                subject=subject,
+                                message=body,
+                                from_email=settings.DEFAULT_FROM_EMAIL,
+                                recipient_list=[user_email],
+                                fail_silently=False,
+                            )
+                            print(f"[ALERTS] Email sent to {user_email} (Result: {result})")
+                        except Exception as e:
+                            print(f"[ALERTS ERROR] Failed to send email to {user_email}: {e}")
                         
             return HttpResponse(status=200)
             
