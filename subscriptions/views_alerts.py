@@ -191,7 +191,7 @@ def storage_webhook(request):
                         print(f"Sending alert to {user_email}")
                         
                         subject = "Exciting news! An auction is about to happen in an area you've expressed interest in!"
-                        body = f"""Dear {user_name},
+                        body = f"""Hey {user_name},
 
 An auction is happening soon in your selected area!
 
