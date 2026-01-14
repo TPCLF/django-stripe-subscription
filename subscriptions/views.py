@@ -144,7 +144,7 @@ def stripe_webhook(request):
             subject = "Welcome to Georgia Auction Alert Archive!"
             body = f"""Dear {user.username},
 
-We're excited to welcome you to our community here at GAAA! We hope you find just what you want at the next auction!
+We're thrilled to welcome you to our community here at GAAA! We hope you find just what you want at the next auction!
 
 To get started, simply log in and click on the alerts button. Here, you can select your desired counties. Once you've saved your preferences, our system will send you timely alerts about upcoming auctions in your area.
 
@@ -174,7 +174,7 @@ GAAA Admin Team
                 subject = "Your subscription is all paid up! You're good to go!"
                 body = f"""Dear {user.username},
 
-We appriciate your continued support! We're overjoyed to have you as part of our community.
+We just wanted to drop you a line and say thank you for your continued support! We're overjoyed to have you as part of our community.
 
 Rest assured, your account is all paid up, please continue to expect your auction alerts and updates. We look forward to helping you find the perfect auction opportunities in your area. 
 
