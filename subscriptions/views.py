@@ -235,3 +235,24 @@ GAAA Admin Team
             print(f"StripeCustomer not found for customer_id: {stripe_customer_id}")
 
     return HttpResponse(status=200)
+
+
+# Policy and Support Pages
+def contact(request):
+    """Display Contact Us page"""
+    return render(request, 'contact.html')
+
+
+def terms(request):
+    """Display Terms of Use page"""
+    return render(request, 'terms.html')
+
+
+def report_issues(request):
+    """Display Report Issues page"""
+    return render(request, 'report_issues.html')
+
+
+def privacy(request):
+    """Display Privacy Policy page"""
+    return render(request, 'privacy.html')

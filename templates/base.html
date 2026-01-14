@@ -60,6 +60,26 @@
         {% endif %}
         {% block content %}{% endblock %}
     </div>
+    
+    <!-- Footer -->
+    <footer class="footer mt-5 py-3 bg-light border-top">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <nav class="nav justify-content-center">
+                        <a class="nav-link px-3 text-secondary" href="{% url 'contact' %}">Contact Us</a>
+                        <a class="nav-link px-3 text-secondary" href="{% url 'terms' %}">Terms of Use</a>
+                        <a class="nav-link px-3 text-secondary" href="{% url 'report_issues' %}">Report Issues</a>
+                        <a class="nav-link px-3 text-secondary" href="{% url 'privacy' %}">Privacy Policy</a>
+                    </nav>
+                    <div class="text-center mt-2">
+                        <small class="text-muted">&copy; 2026 Georgia Auction Alert Archive. All rights reserved.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
     <script>
         // Auto-dismiss Django messages after 2 seconds
         $(document).ready(function () {

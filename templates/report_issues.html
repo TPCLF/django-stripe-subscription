@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block head_title %}Report Issues - Georgia Auction Alert Archive{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Report Issues</h1>
+            <a href="{% url 'subscriptions-home' %}" class="btn btn-outline-secondary">Back to Home</a>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Report a Bug or Issue</h5>
+                
+                <p class="card-text">
+                    We're committed to providing a reliable and high-quality service. If you encounter any bugs, 
+                    technical issues, or problems with your alerts, please let us know so we can fix them quickly.
+                </p>
+                
+                <h6 class="mt-4 mb-3">How to Report Issues:</h6>
+                <p>
+                    To report a technical issue, please email us at <strong>support@auctionalertsarchive.com</strong> with the following information:
+                </p>
+                
+                <h6 class="mt-4 mb-2">Please Include:</h6>
+                <ul>
+                    <li>A clear description of the issue you encountered</li>
+                    <li>Steps to reproduce the problem (if applicable)</li>
+                    <li>Your browser and device information</li>
+                    <li>Any error messages you received</li>
+                    <li>Screenshots or screen recordings (if helpful)</li>
+                    <li>The approximate time the issue occurred</li>
+                </ul>
+                
+                <h6 class="mt-4 mb-3">Issue Priority</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Priority</th>
+                                <th>Response Time</th>
+                                <th>Examples</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge badge-danger">Critical</span></td>
+                                <td>2-4 hours</td>
+                                <td>Service down, data loss, security issues</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge badge-warning">High</span></td>
+                                <td>4-8 hours</td>
+                                <td>Major feature broken, significant functionality impaired</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge badge-info">Medium</span></td>
+                                <td>1-2 days</td>
+                                <td>Minor feature issue, workaround available</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge badge-secondary">Low</span></td>
+                                <td>2-5 days</td>
+                                <td>UI/UX improvements, cosmetic issues</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <p class="text-muted mt-4 mb-0">
+                    Thank you for helping us improve Georgia Auction Alert Archive!
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

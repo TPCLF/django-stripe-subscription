@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block head_title %}Privacy Policy - Georgia Auction Alert Archive{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Privacy Policy</h1>
+            <a href="{% url 'subscriptions-home' %}" class="btn btn-outline-secondary">Back to Home</a>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <p class="text-muted mb-3"><small>Last updated: January 2026</small></p>
+                
+                <h5 class="card-title mb-3">Privacy Policy</h5>
+                
+                <h6 class="mt-4 mb-2">1. Introduction</h6>
+                <p>
+                    Georgia Auction Alert Archive ("we," "us," "our," or the "Service") is committed to protecting your privacy. 
+                    This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit 
+                    our website and use our services.
+                </p>
+                
+                <h6 class="mt-4 mb-2">2. Information We Collect</h6>
+                <p><strong>Personal Information:</strong></p>
+                <ul>
+                    <li>Account information (username, email, password)</li>
+                    <li>Subscription details and payment information</li>
+                    <li>Alert preferences and keywords</li>
+                    <li>Communication preferences</li>
+                </ul>
+                
+                <p><strong>Automatic Information:</strong></p>
+                <ul>
+                    <li>IP address and browser type</li>
+                    <li>Pages visited and time spent on the site</li>
+                    <li>Referrer information</li>
+                    <li>Device information</li>
+                </ul>
+                
+                <h6 class="mt-4 mb-2">3. How We Use Your Information</h6>
+                <p>We use the information we collect to:</p>
+                <ul>
+                    <li>Provide, maintain, and improve our services</li>
+                    <li>Process your transactions and send related information</li>
+                    <li>Send alert notifications based on your preferences</li>
+                    <li>Respond to your comments, questions, and requests</li>
+                    <li>Analyze usage patterns to improve user experience</li>
+                    <li>Comply with legal obligations</li>
+                </ul>
+                
+                <h6 class="mt-4 mb-2">4. Data Security</h6>
+                <p>
+                    We implement appropriate technical and organizational measures to protect your personal information 
+                    against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission 
+                    over the Internet or electronic storage is completely secure.
+                </p>
+                
+                <h6 class="mt-4 mb-2">5. Third-Party Services</h6>
+                <p>
+                    Our Service uses Stripe for payment processing and Supabase for data storage. 
+                    We encourage you to review their privacy policies to understand how they handle your information.
+                </p>
+                
+                <h6 class="mt-4 mb-2">6. Your Rights</h6>
+                <p>
+                    You have the right to access, update, or delete your personal information at any time by logging into 
+                    your account or contacting us at support@auctionalertsarchive.com.
+                </p>
+                
+                <h6 class="mt-4 mb-2">7. Changes to This Policy</h6>
+                <p>
+                    We may update this Privacy Policy from time to time to reflect changes in our practices or for other operational, 
+                    legal, or regulatory reasons. We encourage you to review this policy periodically.
+                </p>
+                
+                <h6 class="mt-4 mb-2">8. Contact Us</h6>
+                <p>
+                    If you have any questions about this Privacy Policy, please contact us at support@auctionalertsarchive.com
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block head_title %}Contact Us - Georgia Auction Alert Archive{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Contact Us</h1>
+            <a href="{% url 'subscriptions-home' %}" class="btn btn-outline-secondary">Back to Home</a>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Get in Touch</h5>
+                
+                <p class="card-text">
+                    We'd love to hear from you! If you have any questions, feedback, or need assistance with your account, 
+                    please don't hesitate to reach out.
+                </p>
+                
+                <h6 class="mt-4 mb-3">How to Contact Us:</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <strong>Email:</strong> support@auctionalertsarchive.com
+                    </li>
+                    <li class="mb-2">
+                        <strong>Response Time:</strong> We aim to respond to all inquiries within 24-48 hours.
+                    </li>
+                </ul>
+                
+                <h6 class="mt-4 mb-3">What We Can Help With:</h6>
+                <ul>
+                    <li>Account questions and subscription management</li>
+                    <li>Alert configuration and filtering</li>
+                    <li>Technical issues or bugs</li>
+                    <li>General inquiries about our service</li>
+                    <li>Feedback and feature requests</li>
+                </ul>
+                
+                <p class="text-muted mt-4 mb-0">
+                    Thank you for being part of the Georgia Auction Alert Archive community!
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
