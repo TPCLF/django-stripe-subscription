@@ -35,8 +35,8 @@ def home(request):
         except Exception as e:
             print(f"Error fetching subscription: {e}")
 
-    # Allow any logged-in user to see all files
-    can_see_all_files = request.user.is_authenticated
+    # Only active subscribers can see all files (non-subscribers see past files only)
+    can_see_all_files = user_is_active
     files = list_files(user_is_active=can_see_all_files)
 
     return render(request, "home.html", {
@@ -55,14 +55,16 @@ def stripe_config(request):
 
 
 
+@login_required
 @csrf_exempt
 def create_checkout_session(request):
     if request.method == "GET":
-        domain_url = "http://localhost:8000/"
+        # Build domain URL dynamically from request (works in dev and production)
+        domain_url = request.build_absolute_uri("/")
         stripe.api_key = settings.STRIPE_SECRET_KEY
         try:
             checkout_session = stripe.checkout.Session.create(
-                client_reference_id = request.user.id if request.user.is_authenticated else None,
+                client_reference_id = request.user.id,  # User is guaranteed authenticated
                 success_url=domain_url + "success?session_id={CHECKOUT_SESSION_ID}",
                 cancel_url=domain_url + "cancel/",
                 payment_method_types= ["card"],
@@ -107,18 +109,28 @@ def send_subscription_email(user, subject, message):
 def stripe_webhook(request):
     stripe.api_key = settings.STRIPE_SECRET_KEY
     endpoint_secret = settings.STRIPE_ENDPOINT_SECRET
+
+    # Validate webhook secret is configured
+    if not endpoint_secret:
+        print("ERROR: STRIPE_ENDPOINT_SECRET not configured")
+        return HttpResponse(status=500)
+
+    # Get signature header safely
+    sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
+    if not sig_header:
+        return HttpResponse(status=400)
+
     payload = request.body
-    sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
     event = None
 
     try:
         event = stripe.Webhook.construct_event(
             payload, sig_header, endpoint_secret
         )
-    except ValueError as e:
+    except ValueError:
         # Invalid payload
         return HttpResponse(status=400)
-    except stripe.error.SignatureVerificationError as e:
+    except stripe.error.SignatureVerificationError:
         # Invalid signature
         return HttpResponse(status=400)
 

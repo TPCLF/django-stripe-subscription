@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -24,71 +25,74 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'cq5pnv3l)3cigb9y%&lico@f6j!@8ma81m_@-(k7#074dp97+k'
+# Generate a new key: python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-insecure-key-change-in-production")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "True").lower() in ("true", "1", "yes")
 
-ALLOWED_HOSTS = []
+# Hosts allowed to serve this application
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip()]
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
     "django.contrib.sites",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
     "subscriptions.apps.SubscriptionsConfig",
-
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
     # Ensure CSRF cookie is present for GET requests to avoid 'CSRF cookie not set' errors
-    'subscriptions.middleware.EnsureCSRFCookieMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "subscriptions.middleware.EnsureCSRFCookieMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Required for django-allauth 65+
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
-ROOT_URLCONF = 'djangostripe.urls'
+ROOT_URLCONF = "djangostripe.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": ["templates"],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'djangostripe.wsgi.application'
+WSGI_APPLICATION = "djangostripe.wsgi.application"
 
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
@@ -98,16 +102,16 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -115,9 +119,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
@@ -125,11 +129,14 @@ USE_L10N = True
 
 USE_TZ = True
 
+# Default primary key field type
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = "/static/"
 
 # Stripe Settings
 STRIPE_PUBLISHABLE_KEY = os.environ.get("STRIPE_PUBLISHABLE_KEY")
@@ -140,7 +147,6 @@ STRIPE_PRICE_ID = os.environ.get("STRIPE_PRICE_ID")
 AUTHENTICATION_BACKENDS = [
     # Needed to login by username in django admin, regardless of "allauth"
     "django.contrib.auth.backends.ModelBackend",
-
     # "allauth" specific authentication methods, such as login by email
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
@@ -149,24 +155,26 @@ AUTHENTICATION_BACKENDS = [
 SITE_ID = 1
 
 # User will be redirected to this page after logging in
-LOGIN_REDIRECT_URL= "/"
+LOGIN_REDIRECT_URL = "/"
 
 # Email Configuration
 # Email Configuration
 # For production: configure SMTP credentials in .env file
 # For development/testing: leave EMAIL_HOST empty to use console backend
-EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost') # Default to localhost for MailHog
-EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '1025')) # Default to 1025 for MailHog
+EMAIL_HOST = os.environ.get(
+    "EMAIL_HOST", "localhost"
+)  # Default to localhost for MailHog
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "1025"))  # Default to 1025 for MailHog
 
 if EMAIL_HOST:
     # SMTP Email Backend - sends real emails
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
     # Default TLS to False if using MailHog port, otherwise True
-    default_tls = 'False' if EMAIL_PORT == 1025 else 'True'
-    EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', default_tls).lower() == 'true'
-    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'dev@example.com')
+    default_tls = "False" if EMAIL_PORT == 1025 else "True"
+    EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", default_tls).lower() == "true"
+    EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+    DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "dev@example.com")
 else:
     # Console Backend - prints emails to terminal (development only)
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
@@ -184,17 +192,25 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
 SUPABASE_BUCKET = os.environ.get("SUPABASE_BUCKET", "files")
 
-# CSRF Settings for development
+# CSRF Settings
+# Add production domains via CSRF_TRUSTED_ORIGINS env var (comma-separated)
+_csrf_origins = os.environ.get("CSRF_TRUSTED_ORIGINS", "")
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:8001',
-    'http://127.0.0.1:8001',
-    'http://localhost:8000',
-    'http://127.0.0.1:8000',
-]
+    "http://localhost:8001",
+    "http://127.0.0.1:8001",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+] + [o.strip() for o in _csrf_origins.split(",") if o.strip()]
 
-# Session settings to help with logout/login issues
+# Session and cookie security settings
 CSRF_USE_SESSIONS = False
-CSRF_COOKIE_HTTPONLY = False
-SESSION_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_AGE = None  # Cookie expires when browser closes, helps with stale tokens
+CSRF_COOKIE_HTTPONLY = True  # Prevent JavaScript access to CSRF cookie
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_AGE = None  # Cookie expires when browser closes
+
+# Production security (enabled when DEBUG=False)
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True  # Only send cookies over HTTPS
+    CSRF_COOKIE_SECURE = True     # Only send CSRF cookie over HTTPS
+    SECURE_SSL_REDIRECT = True    # Redirect HTTP to HTTPS
