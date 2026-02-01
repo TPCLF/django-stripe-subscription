@@ -3,7 +3,7 @@ name: Deploy to Railway
 on:
   push:
     tags:
-      - 'v*'  # Triggers on v1.0.0, v2.1.3, etc.
+      - 'v[0-9]*'  # Lowercase v followed by version number (v1.0.0, v2.1.3, etc.)
 
 jobs:
   deploy:
@@ -19,9 +19,12 @@ jobs:
       - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --detach
+        run: |
+          railway link --environment production
+          railway up --detach
 
       - name: Log deployment
         run: |
-          echo "Deployed tag: ${{ github.ref_name }}"
-          echo "Commit: ${{ github.sha }}"
+          echo "🚀 Deployed tag: ${{ github.ref_name }}"
+          echo "📦 Commit: ${{ github.sha }}"
+          echo "🌐 URL: https://django-stripe-subscription-production.up.railway.app"
