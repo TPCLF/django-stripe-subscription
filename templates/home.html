@@ -71,6 +71,15 @@
         <a href="{% url 'cancel' %}" class="btn btn-danger mt-3">Cancel Subscription</a>
       </div>
     </div>
+    {% elif request.user.is_authenticated %}
+    <h4>Subscribe Now</h4>
+    <div class="card" style="width: 18rem;">
+      <div class="card-body">
+        <h5 class="card-title">Georgia Auction Alerts</h5>
+        <p class="card-text">Get access to upcoming auction listings and email alerts for your selected counties.</p>
+        <button id="submitBtn" class="btn btn-primary btn-lg">Subscribe</button>
+      </div>
+    </div>
     {% endif %}
   </div>
 </div>
