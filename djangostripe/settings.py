@@ -229,7 +229,7 @@ else:
 
 # Session and cookie security settings
 CSRF_USE_SESSIONS = False
-CSRF_COOKIE_HTTPONLY = True  # Prevent JavaScript access to CSRF cookie
+CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF cookie for AJAX requests
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_AGE = None  # Cookie expires when browser closes
