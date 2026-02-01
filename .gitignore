@@ -157,3 +157,6 @@ dmypy.json
 #environment variables
 .env*
 !.env.example
+staticfiles/
+node_modules/
+.cli-tools/
