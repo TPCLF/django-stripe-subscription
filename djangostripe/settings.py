@@ -244,7 +244,10 @@ CSRF_COOKIE_AGE = None  # Cookie expires when browser closes
 if not DEBUG:
     SESSION_COOKIE_SECURE = True  # Only send cookies over HTTPS
     CSRF_COOKIE_SECURE = True     # Only send CSRF cookie over HTTPS
-    SECURE_SSL_REDIRECT = True    # Redirect HTTP to HTTPS
+    # Trust X-Forwarded-Proto header from Railway/proxy for HTTPS detection
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    # Don't redirect to HTTPS here - Railway handles SSL termination at the edge
+    SECURE_SSL_REDIRECT = False
 
 # Logging Configuration
 LOGGING = {
