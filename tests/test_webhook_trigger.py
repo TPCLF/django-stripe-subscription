@@ -2,13 +2,15 @@
 """
 Test script to simulate a Supabase storage webhook call.
 This helps test the email alert system without needing to actually upload files to Supabase.
+
+Run with: python3 tests/test_webhook_trigger.py
 """
 
 import requests
 import json
 
-# Configuration
-WEBHOOK_URL = "http://localhost:8001/webhooks/storage/"
+# Configuration - update if running on different port
+WEBHOOK_URL = "http://localhost:8000/webhooks/storage/"
 
 # Simulate a file upload webhook payload from Supabase
 # This mimics what Supabase sends when a file is uploaded
@@ -26,7 +28,7 @@ test_payload = {
 print("Testing webhook endpoint...")
 print(f"URL: {WEBHOOK_URL}")
 print(f"Payload: {json.dumps(test_payload, indent=2)}")
-print("\n" + "="*60 + "\n")
+print("\n" + "=" * 60 + "\n")
 
 try:
     response = requests.post(
@@ -34,10 +36,10 @@ try:
         json=test_payload,
         headers={"Content-Type": "application/json"}
     )
-    
+
     print(f"Response Status Code: {response.status_code}")
     print(f"Response Text: {response.text}")
-    
+
     if response.status_code == 200:
         print("\n✓ Webhook processed successfully!")
         print("Check your Django server console for:")
@@ -45,11 +47,15 @@ try:
         print("  - 'Matched counties: ...'")
         print("  - 'Sending alert to ...'")
         print("  - Email content (if using console backend)")
+    elif response.status_code == 401:
+        print("\n✗ Webhook returned 401 Unauthorized")
+        print("This is expected if SUPABASE_WEBHOOK_SECRET is configured.")
+        print("Add the secret to the request headers to test authenticated webhooks.")
     else:
         print(f"\n✗ Webhook failed with status {response.status_code}")
-        
+
 except requests.exceptions.ConnectionError:
     print("✗ ERROR: Could not connect to Django server")
-    print("Make sure Django is running: python manage.py runserver 8001")
+    print("Make sure Django is running: python manage.py runserver")
 except Exception as e:
     print(f"✗ ERROR: {e}")

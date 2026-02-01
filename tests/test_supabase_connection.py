@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+"""
+Test script to verify Supabase connection and storage bucket access
+Run with: python3 tests/test_supabase_connection.py
+"""
+
 import os
 from dotenv import load_dotenv
 from supabase import create_client
@@ -9,7 +15,6 @@ key = os.environ.get("SUPABASE_KEY")
 bucket = os.environ.get("SUPABASE_BUCKET")
 
 print(f"URL: {url}")
-# print(f"KEY: {key}") # Don't print secret key
 print(f"BUCKET: {bucket}")
 
 if not url or not key:
@@ -19,29 +24,28 @@ if not url or not key:
 try:
     supabase = create_client(url, key)
     print("Client created.")
-    
+
     print("Listing all buckets:")
     buckets = supabase.storage.list_buckets()
     for b in buckets:
         print(f" - {b.name}")
-    
+
     print(f"Attempting to list files in bucket '{bucket}'...")
     res = supabase.storage.from_(bucket).list()
     print(f"Response: {res}")
-    
+
     if not res:
         print("Warning: Received empty list. Check if bucket exists, has files, and policies allow SELECT.")
     else:
         print("Files found:")
         for f in res:
             print(f" - {f.get('name')}")
-            
+
         # Generate signed URL for the first file
         first_file = res[0].get('name')
         print(f"\nGenerating signed URL for '{first_file}'...")
         signed_url = supabase.storage.from_(bucket).create_signed_url(first_file, 3600)
-        print(f"Signed URL result: {signed_url}")
-        print(f"Type: {type(signed_url)}")
+        print(f"Signed URL generated successfully")
 
 except Exception as e:
     print(f"Error: {e}")
