@@ -168,28 +168,21 @@ SITE_ID = 1
 LOGIN_REDIRECT_URL = "/"
 
 # Email Configuration
-# Email Configuration
-# For production: configure SMTP credentials in .env file
-# For development/testing: leave EMAIL_HOST empty to use console backend
-EMAIL_HOST = os.environ.get(
-    "EMAIL_HOST", "localhost"
-)  # Default to localhost for MailHog
-EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "1025"))  # Default to 1025 for MailHog
+# For production: set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD in environment
+# For development: uses console backend (prints to terminal/logs)
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True").lower() == "true"
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@example.com")
 
-if EMAIL_HOST:
-    # SMTP Email Backend - sends real emails
+# Use SMTP backend only if credentials are configured, otherwise console backend
+if EMAIL_HOST and EMAIL_HOST_USER:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    # Default TLS to False if using MailHog port, otherwise True
-    default_tls = "False" if EMAIL_PORT == 1025 else "True"
-    EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", default_tls).lower() == "true"
-    EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
-    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
-    DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "dev@example.com")
 else:
-    # Console Backend - prints emails to terminal (development only)
+    # Console Backend - prints emails to logs (works in dev and production without SMTP)
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-    DEFAULT_FROM_EMAIL = "noreply@example.com"
-    DEFAULT_FROM_EMAIL = "noreply@example.com"
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"  # Where collectstatic puts files for production
