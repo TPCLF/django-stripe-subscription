@@ -168,17 +168,18 @@ SITE_ID = 1
 LOGIN_REDIRECT_URL = "/"
 
 # Email Configuration
-# For production: set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD in environment
-# For development: uses console backend (prints to terminal/logs)
+# For production with SMTP relay: set EMAIL_HOST (e.g., smtp2resend.railway.internal)
+# For production with direct SMTP: set EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD
+# For development: leave EMAIL_HOST empty to use console backend
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
-EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "25"))  # Default 25 for internal relays
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
-EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True").lower() == "true"
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "False").lower() == "true"  # Disabled for internal relay
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@example.com")
 
-# Use SMTP backend only if credentials are configured, otherwise console backend
-if EMAIL_HOST and EMAIL_HOST_USER:
+# Use SMTP backend if EMAIL_HOST is configured (works with or without auth for internal relays)
+if EMAIL_HOST:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 else:
     # Console Backend - prints emails to logs (works in dev and production without SMTP)
