@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 from datetime import datetime, timedelta
@@ -5,12 +6,14 @@ from datetime import datetime, timedelta
 from django.conf import settings
 from supabase import Client, create_client
 
+logger = logging.getLogger(__name__)
+
 
 def get_supabase_client() -> Client:
     url = settings.SUPABASE_URL
     key = settings.SUPABASE_KEY
     if not url or not key:
-        print("DEBUG: Credentials missing, using MOCK Supabase client", file=sys.stderr)
+        logger.warning("Supabase credentials missing, using MOCK client")
         from subscriptions.mock_supabase import get_mock_supabase_client
 
         return get_mock_supabase_client()
@@ -93,5 +96,5 @@ def list_files(user_is_active=False):
         return files
 
     except Exception as e:
-        print(f"Error listing files from Supabase: {e}")
+        logger.error(f"Error listing files from Supabase: {e}")
         return []

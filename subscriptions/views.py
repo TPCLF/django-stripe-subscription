@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
@@ -13,6 +15,8 @@ from subscriptions.models import StripeCustomer
 from django.core.mail import send_mail
 
 from subscriptions.utils import list_files
+
+logger = logging.getLogger(__name__)
 
 def home(request):
     user_is_active = False
@@ -33,7 +37,7 @@ def home(request):
         except StripeCustomer.DoesNotExist:
             pass
         except Exception as e:
-            print(f"Error fetching subscription: {e}")
+            logger.error(f"Error fetching subscription: {e}")
 
     # Only active subscribers can see all files (non-subscribers see past files only)
     can_see_all_files = user_is_active
@@ -56,29 +60,33 @@ def stripe_config(request):
 
 
 @login_required
-@csrf_exempt
 def create_checkout_session(request):
-    if request.method == "GET":
-        # Build domain URL dynamically from request (works in dev and production)
-        domain_url = request.build_absolute_uri("/")
-        stripe.api_key = settings.STRIPE_SECRET_KEY
-        try:
-            checkout_session = stripe.checkout.Session.create(
-                client_reference_id = request.user.id,  # User is guaranteed authenticated
-                success_url=domain_url + "success?session_id={CHECKOUT_SESSION_ID}",
-                cancel_url=domain_url + "cancel/",
-                payment_method_types= ["card"],
-                mode = "subscription",
-                line_items=[
-                    {
-                        "price": settings.STRIPE_PRICE_ID,
-                        "quantity": 1,
-                    }
-                ]
-            )
-            return JsonResponse({"sessionId": checkout_session["id"]})
-        except Exception as e:
-            return JsonResponse({"error": str(e)})
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    # Build domain URL dynamically from request (works in dev and production)
+    domain_url = request.build_absolute_uri("/")
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            client_reference_id = request.user.id,  # User is guaranteed authenticated
+            success_url=domain_url + "success?session_id={CHECKOUT_SESSION_ID}",
+            cancel_url=domain_url + "cancel/",
+            payment_method_types= ["card"],
+            mode = "subscription",
+            line_items=[
+                {
+                    "price": settings.STRIPE_PRICE_ID,
+                    "quantity": 1,
+                }
+            ]
+        )
+        return JsonResponse({"sessionId": checkout_session["id"]})
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Checkout session creation failed: {e}")
+        return JsonResponse({"error": "Failed to create checkout session"}, status=500)
 
 
 @login_required
@@ -101,9 +109,9 @@ def send_subscription_email(user, subject, message):
             recipient_list=[user.email],
             fail_silently=True,
         )
-        print(f"Sent email to {user.email}: {subject}")
+        logger.info(f"Sent email to {user.email}: {subject}")
     except Exception as e:
-        print(f"Error sending email to {user.email}: {e}")
+        logger.error(f"Error sending email to {user.email}: {e}")
 
 @csrf_exempt
 def stripe_webhook(request):
@@ -112,7 +120,7 @@ def stripe_webhook(request):
 
     # Validate webhook secret is configured
     if not endpoint_secret:
-        print("ERROR: STRIPE_ENDPOINT_SECRET not configured")
+        logger.error("STRIPE_ENDPOINT_SECRET not configured")
         return HttpResponse(status=500)
 
     # Get signature header safely
@@ -150,7 +158,7 @@ def stripe_webhook(request):
                 stripeCustomerId=stripe_customer_id,
                 stripeSubscriptionId=stripe_subscription_id,
             )
-            print(user.username + " just subscribed.")
+            logger.info(f"User {user.username} subscribed")
             
             # Send welcome email
             subject = "Welcome to Georgia Auction Alert Archive!"
@@ -167,7 +175,7 @@ GAAA Admin Team
 """
             send_subscription_email(user, subject, body)
         except User.DoesNotExist:
-            print("User not found for checkout session.")
+            logger.warning("User not found for checkout session")
 
     elif event["type"] == "invoice.payment_succeeded":
         invoice = event["data"]["object"]
@@ -182,7 +190,7 @@ GAAA Admin Team
             billing_reason = invoice.get('billing_reason')
             
             if billing_reason == 'subscription_cycle':
-                print(f"Subscription renewed for {user.username}")
+                logger.info(f"Subscription renewed for {user.username}")
                 subject = "Your subscription is all paid up! You're good to go!"
                 body = f"""Dear {user.username},
 
@@ -197,7 +205,7 @@ GAAA Admin Team
 """
                 send_subscription_email(user, subject, body)
         except StripeCustomer.DoesNotExist:
-            print(f"StripeCustomer not found for customer_id: {stripe_customer_id}")
+            logger.warning(f"StripeCustomer not found for customer_id: {stripe_customer_id}")
 
     elif event["type"] == "invoice.payment_failed":
         invoice = event["data"]["object"]
@@ -207,7 +215,7 @@ GAAA Admin Team
             customer = StripeCustomer.objects.get(stripeCustomerId=stripe_customer_id)
             user = customer.user
             
-            print(f"Payment failed for {user.username}")
+            logger.info(f"Payment failed for {user.username}")
             subject = "Attention: Your subscription is due."
             body = f"""Dear {user.username},
 
@@ -222,7 +230,7 @@ GAAA Admin Team
 """
             send_subscription_email(user, subject, body)
         except StripeCustomer.DoesNotExist:
-            print(f"StripeCustomer not found for customer_id: {stripe_customer_id}")
+            logger.warning(f"StripeCustomer not found for customer_id: {stripe_customer_id}")
 
     elif event["type"] == "customer.subscription.deleted":
         subscription = event["data"]["object"]
@@ -232,7 +240,7 @@ GAAA Admin Team
             customer = StripeCustomer.objects.get(stripeCustomerId=stripe_customer_id)
             user = customer.user
             
-            print(f"Subscription ended for {user.username}")
+            logger.info(f"Subscription ended for {user.username}")
             # Optional: Send a final goodbye email or just log it. 
             # The user didn't explicitly ask for an "Ended" email different from "Not Paid", 
             # but "Not Paid" implies a chance to renew. 
@@ -244,7 +252,7 @@ GAAA Admin Team
                 f"Hi {user.username},\n\nYour subscription has ended. We hope to see you again soon!"
             )
         except StripeCustomer.DoesNotExist:
-            print(f"StripeCustomer not found for customer_id: {stripe_customer_id}")
+            logger.warning(f"StripeCustomer not found for customer_id: {stripe_customer_id}")
 
     return HttpResponse(status=200)
 

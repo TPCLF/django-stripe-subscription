@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 import os
 from pathlib import Path
 
+import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -24,12 +26,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# Generate a new key: python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-insecure-key-change-in-production")
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "True").lower() in ("true", "1", "yes")
+
+# SECURITY WARNING: keep the secret key used in production secret!
+# Generate a new key: python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+SECRET_KEY = os.environ.get("SECRET_KEY", "")
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = "dev-only-insecure-key-change-in-production"
+    else:
+        raise ImproperlyConfigured("SECRET_KEY environment variable must be set in production")
 
 # Hosts allowed to serve this application
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip()]
@@ -53,6 +60,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # Serve static files in production
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -88,12 +96,14 @@ WSGI_APPLICATION = "djangostripe.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
+# Railway provides DATABASE_URL; falls back to SQLite for local dev
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 
@@ -182,8 +192,19 @@ else:
     DEFAULT_FROM_EMAIL = "noreply@example.com"
 
 STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"  # Where collectstatic puts files for production
 
 STATICFILES_DIRS = [Path(BASE_DIR).joinpath("static")]
+
+# Whitenoise compression and caching for production
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Supabase Settings
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
@@ -191,16 +212,26 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
 # Optional: service role key for server-side operations (keep this secret)
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
 SUPABASE_BUCKET = os.environ.get("SUPABASE_BUCKET", "files")
+# Webhook secret for Supabase storage webhook verification
+# Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
+SUPABASE_WEBHOOK_SECRET = os.environ.get("SUPABASE_WEBHOOK_SECRET", "")
 
 # CSRF Settings
 # Add production domains via CSRF_TRUSTED_ORIGINS env var (comma-separated)
 _csrf_origins = os.environ.get("CSRF_TRUSTED_ORIGINS", "")
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:8001",
-    "http://127.0.0.1:8001",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-] + [o.strip() for o in _csrf_origins.split(",") if o.strip()]
+_env_origins = [o.strip() for o in _csrf_origins.split(",") if o.strip()]
+
+# Only include localhost origins in DEBUG mode
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS = [
+        "http://localhost:8001",
+        "http://127.0.0.1:8001",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ] + _env_origins
+else:
+    # Production: only use explicitly configured origins
+    CSRF_TRUSTED_ORIGINS = _env_origins
 
 # Session and cookie security settings
 CSRF_USE_SESSIONS = False
@@ -214,3 +245,41 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True  # Only send cookies over HTTPS
     CSRF_COOKIE_SECURE = True     # Only send CSRF cookie over HTTPS
     SECURE_SSL_REDIRECT = True    # Redirect HTTP to HTTPS
+
+# Logging Configuration
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+    "loggers": {
+        "subscriptions": {
+            "handlers": ["console"],
+            "level": "DEBUG" if DEBUG else "INFO",
+            "propagate": False,
+        },
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}

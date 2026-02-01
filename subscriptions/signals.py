@@ -1,7 +1,11 @@
+import logging
+import os
+
 from django.conf import settings
 from django.core.mail import send_mail
 from django.dispatch import receiver
-import os
+
+logger = logging.getLogger(__name__)
 
 try:
     from allauth.account.signals import user_signed_up
@@ -19,7 +23,7 @@ def send_welcome_email(request, user, **kwargs):
         message = f"Hi {user.username},\n\nThanks for signing up. You'll receive alerts when matching files are uploaded.\n\n- The Team"
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
     except Exception as e:
-        print(f"Welcome email error: {e}")
+        logger.error(f"Welcome email error: {e}")
 
     # Upsert into Supabase users table
     try:
@@ -38,11 +42,11 @@ def send_welcome_email(request, user, **kwargs):
             # Upsert by email (requires 'email' to be unique in Supabase)
             try:
                 supabase.table('users').upsert(data).execute()
-                print(f"Upserted user into Supabase users table: {user.email}")
+                logger.info(f"Upserted user into Supabase users table: {user.email}")
             except Exception as e:
-                print(f"Supabase upsert error: {e}")
+                logger.error(f"Supabase upsert error: {e}")
     except Exception as e:
-        print(f"Error syncing user to Supabase: {e}")
+        logger.error(f"Error syncing user to Supabase: {e}")
 
 # Add login sync handler
 try:
@@ -67,8 +71,8 @@ def sync_user_on_login(request, user, **kwargs):
             }
             try:
                 supabase.table('users').upsert(data).execute()
-                print(f"Upserted user on login into Supabase users table: {user.email}")
+                logger.info(f"Upserted user on login into Supabase users table: {user.email}")
             except Exception as e:
-                print(f"Supabase upsert error on login: {e}")
+                logger.error(f"Supabase upsert error on login: {e}")
     except Exception as e:
-        print(f"Error syncing user to Supabase on login: {e}")
+        logger.error(f"Error syncing user to Supabase on login: {e}")

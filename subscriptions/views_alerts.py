@@ -1,3 +1,7 @@
+import json
+import logging
+import os
+
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
@@ -6,8 +10,8 @@ from django.conf import settings
 from django.core.mail import send_mail
 from .models import StripeCustomer
 from .utils import get_supabase_client
-import os
-import json
+
+logger = logging.getLogger(__name__)
 
 # List of Georgia Counties
 GA_COUNTIES = [
@@ -38,35 +42,28 @@ def alerts_view(request):
             defaults={'stripeCustomerId': '', 'stripeSubscriptionId': ''}
         )
         user_uuid = str(customer.supabase_user_uuid)
-        
-        print(f"[ALERTS DEBUG] User: {request.user.username}")
-        print(f"[ALERTS DEBUG] Customer UUID: {user_uuid}")
-        print(f"[ALERTS DEBUG] Customer created: {created}")
-        
+
+        logger.debug(f"Alerts view - User: {request.user.username}, UUID: {user_uuid}, created: {created}")
+
         # Use service role key for server-side reads (bypass RLS) when available
         service_key = getattr(settings, 'SUPABASE_SERVICE_KEY', '') or os.environ.get('SUPABASE_SERVICE_KEY', '')
         if service_key:
             from supabase import create_client as create_supabase_client
             supabase = create_supabase_client(settings.SUPABASE_URL, service_key)
-            print("[ALERTS DEBUG] Using service role key for read")
+            logger.debug("Using service role key for read")
         else:
             # Fall back to the regular client (may be blocked by RLS)
             supabase = get_supabase_client()
-            print("[ALERTS DEBUG] Using regular client (may be blocked by RLS)")
-        
+            logger.debug("Using regular client (may be blocked by RLS)")
+
         # Fetch existing alerts from Supabase
         response = supabase.table('alerts').select('keyword').eq('user_id', user_uuid).execute()
-        
-        print(f"[ALERTS DEBUG] Supabase response data: {response.data}")
-        
+
         user_keywords = [item['keyword'] for item in response.data]
-        
-        print(f"[ALERTS DEBUG] User keywords: {user_keywords}")
+        logger.debug(f"User keywords: {user_keywords}")
         
     except Exception as e:
-        print(f"[ALERTS ERROR] Error fetching alerts: {e}")
-        import traceback
-        traceback.print_exc()
+        logger.exception(f"Error fetching alerts: {e}")
         user_keywords = []
 
     return render(request, 'alerts.html', {
@@ -85,7 +82,10 @@ def update_alerts(request):
             )
             user_uuid = str(customer.supabase_user_uuid)
             selected_keywords = request.POST.getlist('keywords')
-            
+
+            # Validate keywords against whitelist to prevent arbitrary input
+            selected_keywords = [k for k in selected_keywords if k in GA_COUNTIES]
+
             # Use service role key for server-side writes (bypass RLS) when available
             service_key = getattr(settings, 'SUPABASE_SERVICE_KEY', '') or os.environ.get('SUPABASE_SERVICE_KEY', '')
             if service_key:
@@ -103,23 +103,30 @@ def update_alerts(request):
                 ins_res = supabase_service.table('alerts').insert(data).execute()
                 # If insert failed due to RLS or other DB error, surface a clear message
                 if getattr(ins_res, 'status_code', None) and ins_res.status_code >= 400:
-                    print(f"Supabase insert failed: {ins_res}")
-                    return JsonResponse({'status': 'error', 'message': str(ins_res)}, status=500)
+                    logger.error(f"Supabase insert failed: {ins_res}")
+                    return JsonResponse({'status': 'error', 'message': 'Failed to save alerts'}, status=500)
                 if isinstance(ins_res, dict) and ins_res.get('error'):
-                    print(f"Supabase insert error: {ins_res}")
-                    return JsonResponse({'status': 'error', 'message': ins_res.get('error')}, status=500)
+                    logger.error(f"Supabase insert error: {ins_res}")
+                    return JsonResponse({'status': 'error', 'message': 'Failed to save alerts'}, status=500)
 
             return JsonResponse({'status': 'success'})
             
         except Exception as e:
-            print(f"Error updating alerts: {e}")
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            logger.exception(f"Error updating alerts: {e}")
+            return JsonResponse({'status': 'error', 'message': 'An error occurred while saving alerts'}, status=500)
             
     return JsonResponse({'status': 'invalid method'}, status=405)
 
 @csrf_exempt
 def storage_webhook(request):
     if request.method == 'POST':
+        # Verify webhook secret
+        webhook_secret = getattr(settings, 'SUPABASE_WEBHOOK_SECRET', '') or os.environ.get('SUPABASE_WEBHOOK_SECRET', '')
+        if webhook_secret:
+            provided_secret = request.headers.get('x-webhook-secret', '')
+            if not provided_secret or provided_secret != webhook_secret:
+                return HttpResponse(status=401)  # Unauthorized
+
         try:
             payload = json.loads(request.body)
             # Supabase Storage webhook payload structure:
@@ -131,8 +138,8 @@ def storage_webhook(request):
             
             if not filename or bucket_id != settings.SUPABASE_BUCKET:
                 return HttpResponse(status=200) # Ignore irrelevant events
-                
-            print(f"New file uploaded: {filename}")
+
+            logger.info(f"New file uploaded: {filename}")
             
             # Check for matching keywords in alerts table
             supabase = get_supabase_client()
@@ -164,7 +171,7 @@ def storage_webhook(request):
             auction_date = date_match.group(1) if date_match else "Upcoming Tuesday"
 
             if matched_counties:
-                print(f"Matched counties: {matched_counties}")
+                logger.info(f"Matched counties: {matched_counties}")
                 # Find users subscribed to these counties using the service client (no RLS)
                 response = supabase_service.table('alerts').select('user_id, keyword').in_('keyword', matched_counties).execute()
                 
@@ -180,7 +187,7 @@ def storage_webhook(request):
                 for uuid_str, keywords in user_matches.items():
                     customers = StripeCustomer.objects.filter(supabase_user_uuid=uuid_str)
                     if not customers.exists():
-                        print(f"No StripeCustomer found for UUID {uuid_str}")
+                        logger.warning(f"No StripeCustomer found for UUID {uuid_str}")
                         continue
 
                     county_name = keywords[0] # Just take the first matched keyword for the email
@@ -188,7 +195,7 @@ def storage_webhook(request):
                     for customer in customers:
                         user_email = customer.user.email
                         user_name = customer.user.username # Or first_name if available
-                        print(f"Sending alert to {user_email}")
+                        logger.info(f"Sending alert to {user_email}")
                         
                         subject = "Exciting news! An auction is about to happen in an area you've expressed interest in!"
                         body = f"""Dear {user_name},
@@ -210,14 +217,14 @@ GAAA Admin Team
                                 recipient_list=[user_email],
                                 fail_silently=False,
                             )
-                            print(f"[ALERTS] Email sent to {user_email} (Result: {result})")
+                            logger.info(f"Email sent to {user_email}")
                         except Exception as e:
-                            print(f"[ALERTS ERROR] Failed to send email to {user_email}: {e}")
+                            logger.error(f"Failed to send email to {user_email}: {e}")
                         
             return HttpResponse(status=200)
             
         except Exception as e:
-            print(f"Webhook error: {e}")
+            logger.exception(f"Webhook error: {e}")
             return HttpResponse(status=500)
             
     return HttpResponse(status=405)

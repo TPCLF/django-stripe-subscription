@@ -1,4 +1,8 @@
+import logging
+
 from django.apps import AppConfig
+
+logger = logging.getLogger(__name__)
 
 
 class SubscriptionsConfig(AppConfig):
@@ -9,4 +13,4 @@ class SubscriptionsConfig(AppConfig):
         try:
             from . import signals  # noqa: F401
         except Exception as e:
-            print(f"Error importing subscriptions signals: {e}")
+            logger.error(f"Error importing subscriptions signals: {e}")
