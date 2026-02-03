@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Django Stripe Debug
+Comment=Launch Django server and Stripe CLI for local testing
+Exec=bash -c "/home/user/django-stripe-subscription/scripts/launch_debug.sh"
+Icon=utilities-terminal
+Terminal=false
+Type=Application
+Categories=Development;Utility;
